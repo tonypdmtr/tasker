@@ -5,7 +5,7 @@
 ;*           : Each task takes turns running for 4.1ms at a time
 ;*           : This one can be extended to more tasks very easily
 ;* Language  : Motorola/Freescale/NXP 68HC11 Assembly Language (aspisys.com/ASM11)
-;* Status    : FREEWARE, Copyright (c) 2018
+;* Status    : FREEWARE, Copyright (c) 2018 by Tony Papadimitriou
 ;* History   : 99.08.18 v1.00 Original
 ;*           : 99.09.20 v1.01 Added SWI Handler for giving up remaining timeslice
 ;*           : 99.09.21 v1.02 Added SHADOW11 for simulator runs.
@@ -14,6 +14,9 @@
 ;*           : 02.02.14 v1.05 Added TASKSTACKSIZE for defining task stack size
 ;*           : 06.04.25 v1.06 Added conditionals for upto 5 tasks
 ;*           : 16.02.18       Refactored for latest ASM11
+;*           : 18.05.13       Added ! in front of SEI and CLI instructions in
+;*           :                respective macros to avoid recursion in certain
+;*           :                #Macro modes
 ;*******************************************************************************
 
 #ifdef ?
@@ -42,7 +45,7 @@ TASKSTACKSIZE       def       50                  ;default task stack size
 
 sei                 macro
           #ifndef INTS
-                    sei                           ;prevent interrupts
+                    !sei                          ;prevent interrupts
           #endif
                     endm
 
@@ -50,7 +53,7 @@ sei                 macro
 
 cli                 macro
           #ifndef INTS
-                    cli                           ;interrupt OK now
+                    !cli                          ;interrupt OK now
           #endif
                     endm
 
