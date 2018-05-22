@@ -75,7 +75,7 @@ ClrRange            macro     [#]FromAddress,[#]ToAddress[,[#]WithValue]
                     merror    X-indexed mode in ToAddress not supported
           #endif
                     ldx       ~1~
-                    #ppc
+Loop$$$
           #ifparm ~3~
                     psha
                     lda       ~3~
@@ -86,7 +86,7 @@ ClrRange            macro     [#]FromAddress,[#]ToAddress[,[#]WithValue]
           #endif
                     inx
                     cmpx      ~2~
-                    blo       :ppc
+                    blo       Loop$$$
                     endm
 
 ;*******************************************************************************
@@ -239,7 +239,7 @@ Loop$$$             bsr       DelayMS
                     pula
 
           #ifndef DelayMS
-                    bra       ?Skip$$$
+                    bra       Skip$$$
 
 DelayMS             proc
                     pshd
@@ -250,7 +250,7 @@ Loop@@              decd
 DELAY@@             equ       BUS_KHZ/:cycles
                     puld
                     rts
-?Skip$$$
+Skip$$$             endp
           #endif
                     endm
 
