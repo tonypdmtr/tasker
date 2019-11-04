@@ -5,7 +5,7 @@
 ;*           : Each task takes turns running for 4.1ms at a time
 ;*           : This one can be extended to more tasks very easily
 ;* Language  : Motorola/Freescale/NXP 68HC11 Assembly Language (aspisys.com/ASM11)
-;* Status    : FREEWARE, Copyright (c) 2018 by Tony Papadimitriou
+;* Status    : FREEWARE, Copyright (c) 2019 by Tony Papadimitriou
 ;* History   : 99.08.18 v1.00 Original
 ;*           : 99.09.20 v1.01 Added SWI Handler for giving up remaining timeslice
 ;*           : 99.09.21 v1.02 Added SHADOW11 for simulator runs.
@@ -220,19 +220,19 @@ Msg@@               fcs       LF,'T3'
 
 Task3               proc
                     swi
-                    @...
+                    ...
                     bra       *
 
 ;*******************************************************************************
 
 Task4               proc
-                    @...
+                    ...
                     bra       *
 
 ;*******************************************************************************
 
 Task5               proc
-                    @...
+                    ...
                     bra       *
 
 ;*******************************************************************************
