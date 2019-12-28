@@ -85,7 +85,7 @@ TASKSTACK{:mloop}   equ       TASKSTACK{:mloop-1}-TASKSTACKSIZE
 task_index          rmb       1                   ;0, 1, 2, etc.
 stack               rmb       2*MAXTASKS          ;Stack for tasks
 
-?FREE_RAM           equ       RAM_END-:pc
+?FREE_RAM           equ       RAM_END-:RAM
 ?STACKUSED          equ       MAXTASKS*TASKSTACKSIZE
 
           #if ?STACKUSED > ?FREE_RAM
