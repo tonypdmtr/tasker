@@ -2,7 +2,7 @@
 ;*           COMMON EQUATES -- MCU INDEPENDENT -- FOR ASM11 ASSEMBLER
 ;*******************************************************************************
 ;* Language  : Motorola/Freescale/NXP 68HC11 Assembly Language (aspisys.com/ASM11)
-;* Status    : FREEWARE Copyright (c) 2018 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc11/common.html
 ;*******************************************************************************
 ; Dot-ending names (XXX.) indicates a unique bit mask (possibly multiple bits)
@@ -889,26 +889,6 @@ lcm                 macro     a,b
 ~label~             set       {~1~}/:mexit*{~2~}
           #endif
                     mexit     {~1~}/:mexit*{~2~}
-                    endm
-
-;*******************************************************************************
-; Allows easy marking of any incomplete sections of code to be looked after at
-; a later time (usually, during development)
-; Define the symbol '...' to have errors display for each use of the macro
-
-...                 macro     Optional message
-          #ifdef ...
-                    mset      #
-            #ifb ~1~
-                    mset      1,\@~procname~\@ is incomplete
-            #else
-                    mset      1,\@~procname~\@: ~1~
-            #endif
-                    #Hint     ~1~
-                    mexit
-          #endif
-                    nop                           ;;avoids branch warnings
-                    #Memory   *-1                 ;;and removes possible warning
                     endm
 
 ;*******************************************************************************

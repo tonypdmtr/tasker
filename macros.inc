@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Sample macro definitions for ASM11 (Win32 & Linux versions, only)
 ;* Language  : Motorola/Freescale/NXP 68HC11 Assembly Language (aspisys.com/ASM11)
-;* Status    : FREEWARE Copyright (c) 2018 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc11/macros.html
 ;* Note(s)   : Use: #Uses macros.inc
 ;*******************************************************************************
@@ -172,7 +172,7 @@ Pin                 macro     [[PinName,]PORT[,BitNumber]]
 ; macro' to define the error directive once, even though we use it twice.)
 
 CheckPin            macro     PinName[,PinName]*
-                    mset      0,#Fatal Pin \@~{:loop}.~\@ not defined with @Pin
+                    mset      0,#Error Pin \@~{:loop}.~\@ not defined with @Pin
           #ifndef ~{:loop}.~
                     ~text~
                     mtop      :n
@@ -230,28 +230,37 @@ Output              macro     PinName[,RegX|RegY]
 ; Delay X number of msec.  Automatically adjust delay to bus speed (BUS_KHZ).
 
 DelayXms            macro     [#]msec
+                    mset      #
                     mreq      1:[#]msec
-~0~~1~ms            psha
-                    lda       #~@~
-Loop$$$             bsr       DelayMS
+          #ifndef DelayMS
+                    bra       Skip$$$
+;*******************************************************************************
+                              #Cycles
+DelayMS             proc
+                    pshx
+                    ldx       #DELAY@@
+                              #Cycles
+Loop@@              decx
+                    bne       Loop@@
+                              #temp :cycles
+                    pulx
+                    rts
+
+DELAY@@             equ       BUS_KHZ-:cycles-:ocycles/:temp
+;*******************************************************************************
+Skip$$$             endp
+          #endif
+                    psha
+                    lda       ~1~
+Loop$$$
+          #if *-DelayMS < 128
+                    bsr       DelayMS
+          #else
+                    jsr       DelayMS
+          #endif
                     deca
                     bne       Loop$$$
                     pula
-
-          #ifndef DelayMS
-                    bra       Skip$$$
-
-DelayMS             proc
-                    pshd
-                    ldd       #DELAY@@
-                              #Cycles
-Loop@@              decd
-                    bne       Loop@@
-DELAY@@             equ       BUS_KHZ/:cycles
-                    puld
-                    rts
-Skip$$$             endp
-          #endif
                     endm
 
 ;*******************************************************************************
