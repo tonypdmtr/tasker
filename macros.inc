@@ -412,22 +412,6 @@ MAXSEMAS            set       ~1~
                     endm
 
 ;*******************************************************************************
-; Drop macros without warnings (Can't drop itself)
-
-Drop                macro     Macro1[,Macro2]*
-                    mreq      1:Macro1[,Macro2]*
-                    #push
-                    #NoWarn
-                    mdo
-                    mswap     1,:mloop
-          #ifnoparm ~1~ = ~0~                     ;;skip self
-                    #Drop     ~1~
-          #endif
-                    mloop     :n
-                    #pull
-                    endm
-
-;*******************************************************************************
 ; FCB (Form Constant Byte) with BCD value of the parameter constant (upto 99)
 
 BCD                 macro     Constant[,Constant]*
