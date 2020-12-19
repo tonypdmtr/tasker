@@ -18,6 +18,7 @@
 ;*           :                respective macros to avoid recursion in certain
 ;*           :                #Macro modes
 ;*           : 20.12.19       Removed redundant instruction in SWI handler [-2 bytes]
+;*           :                Added LF2CRLF conditional to convert LF to CR/LF
 ;*******************************************************************************
 
 #ifdef ?
@@ -181,7 +182,7 @@ Start               proc
 Task0               proc
 Loop@@              ldx       #Msg@@
                     bsr       Print
-                    jsr       Delay
+                    bsr       Delay
                     bra       Loop@@              ;loop forever
 
 Msg@@               fcs       LF,'---Main Task---'
@@ -253,28 +254,6 @@ Done@@              pula
                     rts
 
 ;*******************************************************************************
-; Purpose: Send a character to the SCI
-; Input  : A = character to send
-; Output : None
-; Note(s):
-
-PutChar             proc
-                    cmpa      #LF
-                    bne       ?PutChar
-                    lda       #CR
-                    bsr       ?PutChar
-                    lda       #LF
-;                   bra       ?PutChar
-
-;*******************************************************************************
-
-?PutChar            proc
-Loop@@              tst       SCSR
-                    bpl       Loop@@
-                    sta       SCDR
-                    rts
-
-;*******************************************************************************
 ; Purpose: Delay 0.5ms
 ; Input  : None
 ; Output : None
@@ -291,6 +270,30 @@ Loop@@              dex
                     rts
 
 DELAY@@             equ       BUS_KHZ/2-:cycles-:ocycles/:temp
+
+;*******************************************************************************
+; Purpose: Send a character to the SCI
+; Input  : A = character to send
+; Output : None
+; Note(s):
+
+PutChar             proc
+          #ifdef LF2CRLF
+                    cmpa      #LF
+                    bne       ?PutChar
+                    lda       #CR
+                    bsr       ?PutChar
+                    lda       #LF
+          #endif
+;                   bra       ?PutChar
+
+;*******************************************************************************
+
+?PutChar            proc
+Loop@@              tst       SCSR
+                    bpl       Loop@@
+                    sta       SCDR
+                    rts
 
 ;*******************************************************************************
                     @vector   Vrti,RTI_Handler    ;Timer interrupt
