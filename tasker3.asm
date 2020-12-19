@@ -17,6 +17,7 @@
 ;*           : 18.05.13       Added ! in front of SEI and CLI instructions in
 ;*           :                respective macros to avoid recursion in certain
 ;*           :                #Macro modes
+;*           : 20.12.19       Removed redundant instruction in SWI handler [-2 bytes]
 ;*******************************************************************************
 
 #ifdef ?
@@ -48,9 +49,7 @@ sei                 macro
                     !sei                          ;prevent interrupts
           #endif
                     endm
-
 ;-------------------------------------------------------------------------------
-
 cli                 macro
           #ifndef INTS
                     !cli                          ;interrupts OK now
@@ -66,10 +65,9 @@ MAXTASKS            def       3                   ;Number of maximum tasks (defa
           #if MAXTASKS < 2
                     #Warning  MAXTASKS ({MAXTASKS}) must be at least two
           #endif
-
-;-------------------------------------------------------------------------------
-; Multitasking-related variables and definitions
-;-------------------------------------------------------------------------------
+          ;--------------------------------------
+          ; Multitasking-related variables and definitions
+          ;--------------------------------------
 
 ?                   macro
 TASKSTACK1          equ       STACKTOP-TASKSTACKSIZE
@@ -108,25 +106,28 @@ RTI_Handler         proc
 ; SoftWare Interrupt requests come here (use SWI to give up timeslice)
 
 SWI_Handler         proc
-                    ldb       task_index          ;get current task stack pointer
+          ;-------------------------------------- ;save current task stack pointer
+                    ldb       task_index
                     ldx       #stack
                     abx:2
-                    sts       ,x                  ;Save current SP
-
-                    ldb       task_index          ;point to next task
-                    incb                          ;task_index := (task_index + 1) mod MAXTASKS;
+                    sts       ,x                  ;save current SP
+          ;-------------------------------------- ;point to next task
+;                   ldb       task_index          ;B = current task (already loaded)
+                    incb                          ;task_index := (task_index + 1) mod MAXTASKS
                     cmpb      #MAXTASKS           ;higher than max task?
                     blo       Wrap@@
                     clrb                          ;if yes, wrap around to first task
 Wrap@@              stb       task_index          ;and save it
+          ;-------------------------------------- ;switch stacks
                     ldx       #stack
                     abx:2
                     lds       ,x                  ;load new task's SP
-                    rti
+                    RTI                           ;continue with next task
 
 ;*******************************************************************************
 
-TCB                 macro
+TCB                 macro                         ;Task Control Block
+                    mdef      1,MAXTASKS
                     lds       #TASKSTACK{:loop}   ;extra stack
                     ldx       #Task{:loop}        ;point to extra task start address
                     pshx
@@ -135,7 +136,7 @@ TCB                 macro
                     lda       #S.|X.              ;Initial CCR for task 1
                     psha
                     sts       stack+{:loop-1*2+2}
-                    mtop      MAXTASKS
+                    mtop      ~1~
                     endm
 
 ;*******************************************************************************
@@ -144,14 +145,11 @@ Start               proc
                     clr       task_index          ;initialize to main task
 
                     @tcb                          ;prepare initial stack frame(s)
-
-          ; Primary (Task0) task's initialization
-
+          ;-------------------------------------- ;Primary (Task0) task's initialization
                     lds       #STACKTOP           ;primary task's stack
-
-          ;---------------------------------------------------------------------
+          ;--------------------------------------
           ; Let's initialize the SCI for polled mode operation at 9600 bps
-
+          ;--------------------------------------
                     clr       SCCR2
           #ifdef DEBUG
                     clrd                          ;For SIM11E, use fastest bps rate
@@ -161,11 +159,10 @@ Start               proc
                     std       BAUD
                     lda       #%1100
                     sta       SCCR2               ;Transmitter/Receiver enabled
-
-          ;---------------------------------------------------------------------
+          ;--------------------------------------
           ; Now, let's initialize the timer
           ; Real-time clock initialization (4.1ms RTI @ 2MHz MCU E-Clock)
-
+          ;--------------------------------------
                     ldx       #REGS
                     bclr      [PACTL,x,%11        ;mask off RTR1:0 bits
                     bset      [TMSK2,x,RTIF.      ;Enable RTI interrupts
@@ -220,19 +217,19 @@ Msg@@               fcs       LF,'T3'
 
 Task3               proc
                     swi
-                    ...       Add your code here
+                    !...      Add your code here
                     bra       *
 
 ;*******************************************************************************
 
 Task4               proc
-                    ...       Add your code here
+                    !...      Add your code here
                     bra       *
 
 ;*******************************************************************************
 
 Task5               proc
-                    ...       Add your code here
+                    !...      Add your code here
                     bra       *
 
 ;*******************************************************************************
@@ -263,12 +260,17 @@ Done@@              pula
 
 PutChar             proc
                     cmpa      #LF
-                    bne       Send@@
+                    bne       ?PutChar
                     lda       #CR
-                    bsr       Send@@
+                    bsr       ?PutChar
                     lda       #LF
-Send@@              tst       SCSR
-                    bpl       Send@@
+;                   bra       ?PutChar
+
+;*******************************************************************************
+
+?PutChar            proc
+Loop@@              tst       SCSR
+                    bpl       Loop@@
                     sta       SCDR
                     rts
 
