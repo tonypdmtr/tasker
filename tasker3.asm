@@ -25,10 +25,10 @@
   #Hint ****************************************************
   #Hint * Possible -D option values are shown here:
   #Hint ****************************************************
-  #Hint * DEBUG..... For use with SIM11E
-  #Hint * TASKS:n... Set number of tasks to n
-  #Hint * INTS...... Interrupts OK inside Print
-  #Hint * SWI....... Third task gives up remaining timeslice
+  #Hint * DEBUG....: For use with SIM11E
+  #Hint * TASKS:n..: Set number of tasks to n
+  #Hint * INTS.....: Interrupts OK inside Print
+  #Hint * SWI......: Third task gives up remaining timeslice
   #Hint ****************************************************
   #Fatal Run ASM11 -Dx (where x is any of the above)
 #endif
@@ -64,7 +64,7 @@ cli                 macro
 MAXTASKS            def       3                   ;Number of maximum tasks (default)
 
           #if MAXTASKS < 2
-                    #Warning  MAXTASKS ({MAXTASKS}) must be at least two
+                    #Error    MAXTASKS ({MAXTASKS}) must be at least two
           #endif
           ;--------------------------------------
           ; Multitasking-related variables and definitions
@@ -78,9 +78,7 @@ TASKSTACK{:mloop}   equ       TASKSTACK{:mloop-1}-TASKSTACKSIZE
                     endm
 
                     @?
-
 ;-------------------------------------------------------------------------------
-
 task_index          rmb       1                   ;0, 1, 2, etc.
 stack               rmb       2*MAXTASKS          ;Stack for tasks
 
@@ -90,7 +88,6 @@ stack               rmb       2*MAXTASKS          ;Stack for tasks
           #if ?STACKUSED > ?FREE_RAM
                     #Error    Not enough RAM for all stacks and variables
           #endif
-
 ;*******************************************************************************
                     #ROM
 ;*******************************************************************************
